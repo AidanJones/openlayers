@@ -62,12 +62,20 @@
             var map;
 			
 			var stepCounter = 0;
+			var errorCounter = 0;
+			
+			var zoomLevel = 17;
+			
 			var latRange = .0005;
 			var longRange = .001;
-			var latArray=new Array(52.453071627674,52.453071627674,52.453071627674);
-			var longArray=new Array(-1.9286870958604,-1.9286870958604,-1.9286870958604);
-			var clueArray=new Array("123","Volvo","BMW");
+			var latArray=new Array(52.45305,52.45247,52.45142);
+			var longArray=new Array(-1.92798,-1.93167,-1.93031);
+			var clueArray=new Array("Can you find the Gisbert Kapp Building?","Can you find the Running Track?","Can you find the Main Library?");
+			//TODO make and array of arrays for hints. 
 			var hintArray=new Array("123","Volvo","BMW");
+			
+			
+			var boxes;
 			
             function init(){
                 map = new OpenLayers.Map('map');
@@ -90,30 +98,30 @@
                 {type: G_SATELLITE_MAP, numZoomLevels: 22}
             );
 				
-				var boxes  = new OpenLayers.Layer.Boxes( "Boxes" );
+				boxes  = new OpenLayers.Layer.Boxes( "Boxes" );
 				var latLower = latArray[0] - latRange;
 				var latUpper = latArray[0] + latRange;
 				var longLower = longArray[0] - longRange;
 				var longUpper = longArray[0] + longRange;
 				
-				 bounds = new OpenLayers.Bounds();
-				bounds.extend(new OpenLayers.LonLat(longLower,latLower));
-				bounds.extend(new OpenLayers.LonLat(longUpper,latUpper));
-                 box = new OpenLayers.Marker.Box(bounds);
-				 boxes.addMarker(box);
+				 
 				
-				
+				map.addControl(new OpenLayers.Control.MousePosition());
                 map.addControl(new OpenLayers.Control.LayerSwitcher());
-				 map.addLayers([gphy, gmap, ghyb, gsat, boxes]);
+				 map.addLayers([gmap, ghyb, gsat, boxes]);
 				
                 // map.setCenter(new OpenLayers.LonLat(0, 0), 0);
-                map.zoomToMaxExtent();
+               // map.zoomToMaxExtent();
                 
                 var click = new OpenLayers.Control.Click();
                 map.addControl(click);
                 click.activate();
 
-				map.setCenter(new OpenLayers.LonLat(-1.9286870958604,  52.453071627674), 15);
+				map.setCenter(new OpenLayers.LonLat(longArray[stepCounter],  latArray[stepCounter]), zoomLevel);
+				
+				
+				clue.innerHTML = clueArray[0];
+				hint.innerHTML = "";
 				
             }
 			
@@ -135,12 +143,39 @@
 				
 				if(latInRange && longInRange)
 				{
-					stepCounter ++; 
-					alert("Congratulations on to the next clue! Lat " + latLower + " < "+ +  " " + lonlat.lat + " < " + latUpper+" N "+latInRange+", Long " + longLower + " < " + lonlat.lon + " < " +longUpper + " E");
+					alert("Congratulations on to the next clue!");					
+					//alert("Congratulations on to the next clue! Lat " + latLower + " < "+ +  " " + lonlat.lat + " < " + latUpper+" N "+latInRange+", Long " + longLower + " < " + lonlat.lon + " < " +longUpper + " E");
+					boxes.clearMarkers();
+					
+					stepCounter ++;
+					if(stepCounter >= clueArray.length)
+					{
+						stepCounter = 0;
+					}
+					errorCounter = 0;
+					clue.innerHTML = clueArray[stepCounter];
+					hint.innerHTML = "";
+				
 				}
 				else
 				{
-				   alert("Not Quite Try again You clicked near! Lat " + latLower + " < " + lonlat.lat + " < " + latUpper+" N, Long " + longLower + " < " + lonlat.lon + " < " +longUpper + " E");
+				    alert("Not quite please try again!");		
+					//alert("Not Quite Try again You clicked near! Lat " + latLower + " < " + lonlat.lat + " < " + latUpper+" N, Long " + longLower + " < " + lonlat.lon + " < " +longUpper + " E");
+					errorCounter++;
+					
+					if(errorCounter > 1)
+					{
+						bounds = new OpenLayers.Bounds();
+						bounds.extend(new OpenLayers.LonLat(longLower,latLower));
+						bounds.extend(new OpenLayers.LonLat(longUpper,latUpper));
+						box = new OpenLayers.Marker.Box(bounds);
+						boxes.addMarker(box);
+					}
+					
+					if(errorCounter > 2)
+					{
+						map.setCenter(new OpenLayers.LonLat(longArray[stepCounter],  latArray[stepCounter]), zoomLevel);
+					}
 				}
 			
 			     
@@ -151,8 +186,23 @@
         
  
 
-        <div id="map" class="smallmap"></div>
-    
+         <div id="map" class="smallmap"></div>
+
+          <div id="text">
+              <h1 id="title">Treasure Hunt</h1>
+
+              <p id="clue">
+                Clue 0
+            </p>
+
+            <div id="hint">
+                <p>
+				Hint 0
+				</p>
+               
+            </div>
+            
+        </div>
 
     </body>
 </html>
