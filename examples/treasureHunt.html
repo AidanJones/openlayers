@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <title>Treasure Hunt</title>
+        
+        <link rel="stylesheet" href="../theme/default/style.css" type="text/css">
+        <link rel="stylesheet" href="style.css" type="text/css">
+		
+		<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAjpkAC9ePGem0lIq5XcMiuhR_wWLPFku8Ix9i2SXYRVK3e45q1BQUd_beF8dtzKET_EteAjPdGDwqpQ'></script>
+		<style type="text/css">
+            html, body, #map {
+                margin: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            #text {
+                position: absolute;
+                bottom: 1em;
+                left: 1em;
+                width: 512px;
+                z-index: 20000;
+                background-color: white;
+                padding: 0 0.5em 0.5em 0.5em;
+            }
+        </style>
+		
+        <script src="../lib/OpenLayers.js"></script>
+        <script type="text/javascript">
+            OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                
+                defaultHandlerOptions: {
+                    'single': true,
+                    'double': false,
+                    'pixelTolerance': 0,
+                    'stopSingle': false,
+                    'stopDouble': false
+                },
+
+                initialize: function(options) {
+                    this.handlerOptions = OpenLayers.Util.extend(
+                        {}, this.defaultHandlerOptions
+                    );
+                    OpenLayers.Control.prototype.initialize.apply(
+                        this, arguments
+                    ); 
+                    this.handler = new OpenLayers.Handler.Click(
+                        this, {
+                            'click': this.trigger
+                        }, this.handlerOptions
+                    );
+                }, 
+
+                trigger: function(e) {
+                    var lonlat = map.getLonLatFromPixel(e.xy);
+                    checkLonLat(lonlat);
+                }
+
+            });
+            var map;
+			
+			var stepCounter = 0;
+			var latRange = .0005;
+			var longRange = .001;
+			var latArray=new Array(52.453071627674,52.453071627674,52.453071627674);
+			var longArray=new Array(-1.9286870958604,-1.9286870958604,-1.9286870958604);
+			var clueArray=new Array("123","Volvo","BMW");
+			var hintArray=new Array("123","Volvo","BMW");
+			
+            function init(){
+                map = new OpenLayers.Map('map');
+
+                
+            var gphy = new OpenLayers.Layer.Google(
+                "Google Physical",
+                {type: G_PHYSICAL_MAP}
+            );
+            var gmap = new OpenLayers.Layer.Google(
+                "Google Streets", // the default
+                {numZoomLevels: 20}
+            );
+            var ghyb = new OpenLayers.Layer.Google(
+                "Google Hybrid",
+                {type: G_HYBRID_MAP, numZoomLevels: 20}
+            );
+            var gsat = new OpenLayers.Layer.Google(
+                "Google Satellite",
+                {type: G_SATELLITE_MAP, numZoomLevels: 22}
+            );
+				
+				var boxes  = new OpenLayers.Layer.Boxes( "Boxes" );
+				var latLower = latArray[0] - latRange;
+				var latUpper = latArray[0] + latRange;
+				var longLower = longArray[0] - longRange;
+				var longUpper = longArray[0] + longRange;
+				
+				 bounds = new OpenLayers.Bounds();
+				bounds.extend(new OpenLayers.LonLat(longLower,latLower));
+				bounds.extend(new OpenLayers.LonLat(longUpper,latUpper));
+                 box = new OpenLayers.Marker.Box(bounds);
+				 boxes.addMarker(box);
+				
+				
+                map.addControl(new OpenLayers.Control.LayerSwitcher());
+				 map.addLayers([gphy, gmap, ghyb, gsat, boxes]);
+				
+                // map.setCenter(new OpenLayers.LonLat(0, 0), 0);
+                map.zoomToMaxExtent();
+                
+                var click = new OpenLayers.Control.Click();
+                map.addControl(click);
+                click.activate();
+
+				map.setCenter(new OpenLayers.LonLat(-1.9286870958604,  52.453071627674), 15);
+				
+            }
+			
+			function checkLonLat(lonlat)
+			{
+			    var latLower = latArray[stepCounter] - latRange;
+				var latUpper = latArray[stepCounter] + latRange;
+				var longLower = longArray[stepCounter] - longRange;
+				var longUpper = longArray[stepCounter] + longRange;
+			
+				var latMoreThanLow = lonlat.lat > latLower;
+				var latLessThanUpper = lonlat.lat < latUpper; 
+				var latInRange=latMoreThanLow && latLessThanUpper;
+				
+				var longMoreThanLow = lonlat.lon > longLower;
+				var longLessThanUpper = lonlat.lon < longUpper; 
+				
+				var longInRange = longMoreThanLow && longLessThanUpper;
+				
+				if(latInRange && longInRange)
+				{
+					stepCounter ++; 
+					alert("Congratulations on to the next clue! Lat " + latLower + " < "+ +  " " + lonlat.lat + " < " + latUpper+" N "+latInRange+", Long " + longLower + " < " + lonlat.lon + " < " +longUpper + " E");
+				}
+				else
+				{
+				   alert("Not Quite Try again You clicked near! Lat " + latLower + " < " + lonlat.lat + " < " + latUpper+" N, Long " + longLower + " < " + lonlat.lon + " < " +longUpper + " E");
+				}
+			
+			     
+			}
+        </script>
+    </head>
+    <body onload="init()">
+        
+ 
+
+        <div id="map" class="smallmap"></div>
+    
+
+    </body>
+</html>
